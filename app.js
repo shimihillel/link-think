@@ -1,7 +1,7 @@
 const KEY='linkThinkDataV1';
 const defaultCats=[['home','בית','#6b9d74'],['clothes','בגדים','#ef2f75'],['beauty','טיפוח','#f47a55'],['kids','ילדים','#71a8e4'],['jewelry','תכשיטים','#a88ae6'],['bags','תיקים ונעליים','#2b63d9'],['gadgets','גאדג׳טים','#35a9a5'],['other','אחר','#9d958c']].map(([id,name,color])=>({id,name,color}));
 let state=(()=>{try{return JSON.parse(localStorage.getItem(KEY))||{items:[],categories:defaultCats,collapsedMonths:{}}}catch{return{items:[],categories:defaultCats,collapsedMonths:{}}}})();
-let tab='active', editId=null, selected=new Set(), detailId=null, boughtId=null;
+let tab='active', editId=null, selected=new Set(), detailId=null, boughtId=null, actionItemId=null;
 let filters={sort:'newest',categories:[],stores:[],months:[],currency:'₪',min:'',max:'',couponValid:false,couponExpired:false,couponNone:false};
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
@@ -27,7 +27,36 @@ function render(){cleanup();let live=state.items.filter(i=>!i.deletedAt);$('#cou
 function monthHTML(k,arr){let c=!!state.collapsedMonths[tab+':'+k];return`<div class="month"><button class="month-header" data-month="${k}"><span class="month-title">${mlabel(k)} · ${arr.length} פריטים</span><span>${c?'⌄':'⌃'}</span></button><div class="grid ${c?'hidden':''}">${arr.map(cardHTML).join('')}</div></div>`}
 function cardHTML(i){let cc=cat(i.categories[0]),p=tab==='bought'?(i.paidCurrency||i.currency)+Math.round(i.paidPrice??i.price??0):(i.unknownPrice?'מחיר לא ידוע':i.currency+Math.round(i.price)),cp='';if(tab==='active'&&i.coupon){let t=couponText(i),s=couponState(i);cp=`<div class="coupon-row ${s==='expired'?'expired':(t.startsWith('פג בעוד')||t==='פג היום')?'soon':''}"><span data-copy-coupon="${i.id}">${esc(i.coupon)}</span><span>${esc(t)}</span></div>`}return`<article class="card" data-open="${i.id}"><div class="card-image-wrap"><img src="${i.image}"></div><div class="card-body" style="--cat:${cc.color}"><button class="card-menu" data-menu="${i.id}">⋮</button><h3 class="card-title">${esc(i.name)}</h3><div class="card-meta"><span>${esc(i.store)}</span><span class="card-price">${p}</span></div>${cp}</div></article>`}
 function bindCards(){$$('[data-open]').forEach(e=>e.onclick=x=>{if(x.target.closest('[data-menu]')||x.target.closest('[data-copy-coupon]'))return;openDetail(e.dataset.open)});$$('[data-menu]').forEach(b=>b.onclick=e=>{e.stopPropagation();itemMenu(b.dataset.menu)});$$('[data-copy-coupon]').forEach(e=>e.onclick=x=>{x.stopPropagation();let i=state.items.find(y=>y.id===e.dataset.copyCoupon);if(couponState(i)!=='expired'){navigator.clipboard?.writeText(i.coupon);toast('הקוד הועתק')}});$$('[data-month]').forEach(b=>b.onclick=()=>{let k=tab+':'+b.dataset.month;state.collapsedMonths[k]=!state.collapsedMonths[k];save();render()})}
-function itemMenu(id){let i=state.items.find(x=>x.id===id),a=[];if(i.status==='active')a.push(i.pinned?'הסירי נעיצה':'נעצי');a.push('עריכה','שיתוף');if(i.status==='active')a.push('קניתי','ויתרתי');else a.push('החזרה לפעילים');a.push('מחיקה');let c=prompt(a.map((x,n)=>`${n+1}. ${x}`).join('\n')),v=a[+c-1];if(!v)return;if(v.includes('נעיצה')||v==='נעצי'){if(!i.pinned&&state.items.filter(x=>x.status==='active'&&x.pinned&&!x.deletedAt).length>=5)return toast('אפשר לנעוץ עד 5 פריטים');i.pinned=!i.pinned;save();render()}if(v==='עריכה')openForm(i);if(v==='שיתוף')share(i);if(v==='קניתי')startBought(i.id);if(v==='ויתרתי'&&confirm('להעביר לויתרתי?'))pass(i);if(v==='החזרה לפעילים')restoreActive(i);if(v==='מחיקה'&&confirm('להעביר לאשפה?')){i.deletedAt=new Date().toISOString();i.previousStatus=i.status;save();render()}}
+function openActionMenu(id,source='card'){
+  let i=state.items.find(x=>x.id===id);if(!i)return;
+  actionItemId=id;
+  let actions=[];
+  if(source==='card'&&i.status==='active')actions.push({key:'pin',label:i.pinned?'הסירי נעיצה':'נעצי',primary:true});
+  actions.push({key:'edit',label:'עריכה'},{key:'share',label:'שיתוף'});
+  if(source==='card'&&i.status==='active')actions.push({key:'buy',label:'קניתי'},{key:'pass',label:'ויתרתי'});
+  if(i.status!=='active')actions.push({key:'restore',label:'החזרה לפעילים'});
+  actions.push({key:'delete',label:'מחיקה',danger:true});
+  $('#actionSheetTitle').textContent=i.name;
+  $('#actionSheetButtons').innerHTML=actions.map(a=>`<button class="action-btn ${a.primary?'primary-action':''} ${a.danger?'danger-action':''}" data-action="${a.key}">${a.label}</button>`).join('')+`<button class="action-btn cancel-action" data-action="cancel">ביטול</button>`;
+  $$('#actionSheetButtons [data-action]').forEach(b=>b.onclick=()=>handleAction(b.dataset.action,source));
+  openSheet('actionSheet');
+}
+function handleAction(action,source){
+  let i=state.items.find(x=>x.id===actionItemId);if(!i)return closeSheets();
+  if(action==='cancel')return closeSheets();
+  closeSheets();
+  if(action==='pin'){
+    if(!i.pinned&&state.items.filter(x=>x.status==='active'&&x.pinned&&!x.deletedAt).length>=5)return toast('אפשר לנעוץ עד 5 פריטים');
+    i.pinned=!i.pinned;save();render();
+  }
+  if(action==='edit')openForm(i);
+  if(action==='share')share(i);
+  if(action==='buy')startBought(i.id);
+  if(action==='pass'&&confirm('להעביר לויתרתי?'))pass(i);
+  if(action==='restore'){restoreActive(i);$('#detailScreen').classList.add('hidden')}
+  if(action==='delete'&&confirm('להעביר לאשפה?')){i.deletedAt=new Date().toISOString();i.previousStatus=i.status;save();$('#detailScreen').classList.add('hidden');render()}
+}
+function itemMenu(id){openActionMenu(id,'card')}
 function share(i){let p=i.status==='bought'?(i.paidCurrency||i.currency)+i.paidPrice:(i.unknownPrice?'מחיר לא ידוע':i.currency+i.price),t=`${i.name} — ${p}`;if(i.coupon){t+=`\nקוד קופון: ${i.coupon}`;if(i.expiry)t+=`\n${couponText(i)}`}t+=`\n${i.link}`;navigator.share?navigator.share({text:t}).catch(()=>{}):(navigator.clipboard?.writeText(t),toast('הטקסט הועתק'))}
 function openForm(i=null,link=''){editId=i?.id||null;selected=new Set(i?.categories||[]);$('#formScreen').classList.remove('hidden');$('#formLink').value=i?.link||link;$('#nameInput').value=i?.name||'';$('#storeInput').value=i?.store||'';$('#currencyInput').value=i?.currency||'₪';$('#priceInput').value=i?.price??'';$('#unknownPriceInput').checked=!!i?.unknownPrice;$('#couponInput').value=i?.coupon||'';$('#expiryInput').value=i?.expiry||'';$('#noteInput').value=i?.note||'';$('#saveBtn').textContent=i?'Save Changes':'Save & Think';setImg(i?.image||'');renderCats();renderStores();togglePrice();setTimeout(()=>$('#nameInput').focus(),120)}
 function setImg(src){$('#imagePreview').classList.toggle('hidden',!src);$('#imagePlaceholder').classList.toggle('hidden',!!src);if(src)$('#imagePreview').src=src;else $('#imagePreview').removeAttribute('src')}
@@ -36,7 +65,7 @@ function renderStores(){let a=[...new Set(state.items.map(i=>i.store).filter(Boo
 function togglePrice(){let u=$('#unknownPriceInput').checked;$('#priceInput').disabled=u;$('#currencyInput').disabled=u}
 function validateForm(){let l=$('#formLink').value.trim(),img=$('#imagePreview').src,u=$('#unknownPriceInput').checked;if(!valid(l)||!$('#nameInput').value.trim()||!$('#storeInput').value.trim()||!img||!selected.size||(!u&&$('#priceInput').value===''))return toast('חסרים כמה פרטים'),false;let nl=norm(l);if(state.items.some(i=>i.id!==editId&&!i.deletedAt&&i.link===nl))return toast('הלינק הזה כבר שמור'),false;return true}
 function openDetail(id){detailId=id;let i=state.items.find(x=>x.id===id);if(!i)return;$('#detailScreen').classList.remove('hidden');let p=i.status==='bought'?(i.paidCurrency||i.currency)+Math.round(i.paidPrice??0):(i.unknownPrice?'מחיר לא ידוע':i.currency+Math.round(i.price));let cats=i.categories.map(c=>`<span class="category-chip selected">${esc(cat(c).name)}</span>`).join(''),cp=i.coupon?`<div class="coupon-row ${couponState(i)==='expired'?'expired':''}"><span id="detailCoupon">${esc(i.coupon)}</span><span>${esc(couponText(i))}</span></div>`:'',hist=(i.history||[]).slice().reverse().map(h=>`<li>${esc(h.text)} · ${fmt(h.date)}</li>`).join(''),acts=i.status==='active'?`<div class="detail-actions"><button class="secondary" id="detailBought">קניתי</button><button class="secondary" id="detailPassed">ויתרתי</button></div>`:(i.status==='bought'?`<p><strong>נקנה ב־${p}</strong></p>`:'');let short=(()=>{try{return new URL(i.link).hostname.replace(/^www\./,'')+'/…'}catch{return i.link}})();$('#detailBody').innerHTML=`<div class="detail-image"><img src="${i.image}"></div><div class="detail-card"><h2>${esc(i.name)}</h2><div class="detail-store">${esc(i.store)}</div><div class="detail-price">${p}</div><div class="category-chips">${cats}</div>${cp}${i.note?`<p>${esc(i.note)}</p>`:''}<p class="detail-store">נשמר ב־${fmt(i.savedAt)}</p><div class="detail-link"><a href="${i.link}" target="_blank">${esc(short)}</a><button id="copyLinkBtn" class="text-btn">העתקה</button></div>${acts}<details class="history"><summary>היסטוריה</summary><ul class="history-list">${hist}</ul></details></div><div class="open-link"><a class="primary full" href="${i.link}" target="_blank">Open Link</a></div>`;$('#copyLinkBtn').onclick=()=>{navigator.clipboard?.writeText(i.link);toast('הלינק הועתק')};$('#detailCoupon')?.addEventListener('click',()=>{if(couponState(i)!=='expired'){navigator.clipboard?.writeText(i.coupon);toast('הקוד הועתק')}});$('#detailBought')?.addEventListener('click',()=>startBought(i.id));$('#detailPassed')?.addEventListener('click',()=>pass(i))}
-function detailMenu(){let i=state.items.find(x=>x.id===detailId),a=['עריכה','שיתוף'];if(i.status!=='active')a.push('החזרה לפעילים');a.push('מחיקה');let c=prompt(a.map((x,n)=>`${n+1}. ${x}`).join('\n')),v=a[+c-1];if(v==='עריכה')openForm(i);if(v==='שיתוף')share(i);if(v==='החזרה לפעילים'){restoreActive(i);$('#detailScreen').classList.add('hidden')}if(v==='מחיקה'&&confirm('להעביר לאשפה?')){i.deletedAt=new Date().toISOString();i.previousStatus=i.status;save();$('#detailScreen').classList.add('hidden');render()}}
+function detailMenu(){openActionMenu(detailId,'detail')}
 function startBought(id){boughtId=id;let i=state.items.find(x=>x.id===id);$('#paidCurrency').innerHTML=['₪','$','€','£','¥'].map(c=>`<option ${c===i.currency?'selected':''}>${c}</option>`).join('');$('#paidPrice').value=i.unknownPrice?'':i.price;openSheet('boughtSheet')}
 function confirmBought(){let i=state.items.find(x=>x.id===boughtId),p=$('#paidPrice').value;if(p==='')return toast('חסר מחיר ששולם');i.status='bought';i.boughtAt=today();i.paidPrice=Math.round(+p);i.paidCurrency=$('#paidCurrency').value;i.pinned=false;i.history.push({date:today(),text:`עבר לקניתי במחיר ${i.paidCurrency}${i.paidPrice}`});save();closeSheets();$('#detailScreen').classList.add('hidden');tab='bought';render();toast('הועבר לקניתי')}
 function pass(i){i.status='passed';i.passedAt=today();i.pinned=false;i.history.push({date:today(),text:'עבר לויתרתי'});save();$('#detailScreen').classList.add('hidden');tab='passed';render()}
