@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f0e7" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Link&Think" />
+  <title>Link&Think</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="splash" class="splash"><img src="icon-192.png" alt="" /></div>
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <button class="icon-btn" id="menuBtn" aria-label="תפריט">⋮</button>
+      <div class="brand">Link<span>&</span>Think</div>
+      <button class="icon-btn" id="quickAddBtn" aria-label="הוספת לינק">＋</button>
+    </header>
+    <main>
+      <section class="hero">
+        <div class="link-entry"><input id="linkInput" type="url" inputmode="url" placeholder="הדביקי לינק" autocomplete="off" /><button id="thinkBtn" class="primary" disabled>Think</button></div>
+        <div class="tabs" id="tabs"><button data-tab="active" class="tab active">פעילים <span id="countActive">0</span></button><button data-tab="bought" class="tab">קניתי <span id="countBought">0</span></button><button data-tab="passed" class="tab">ויתרתי <span id="countPassed">0</span></button></div>
+        <div class="toolbar"><button id="filterBtn" class="secondary">סינון ומיון <span id="filterBadge" class="badge hidden">0</span></button></div>
+        <div id="activeFilters" class="chips-row hidden"><button id="clearAllFilters" class="clear-chip">ניקוי הכול</button><div id="filterChips" class="chips-scroll"></div></div>
+      </section>
+      <section id="pinnedSection" class="section hidden"><h2>נעוצים</h2><div id="pinnedList" class="pinned-list"></div></section>
+      <section id="contentSection" class="section"><div id="monthsContainer"></div><div id="emptyState" class="empty hidden"><div class="empty-mark">&</div><p id="emptyText">שקט פה מדי. תדביקי לינק ונחשוב עליו יחד.</p><button id="emptyClearBtn" class="secondary hidden">ניקוי סינונים</button></div></section>
+    </main>
+    <div id="toast" class="toast"></div>
+  </div>
+
+  <section id="formScreen" class="screen hidden">
+    <header class="screen-header"><button class="icon-btn back-btn" data-close-screen="form">←</button><div><h1>Let’s Think about it</h1><p>השלימי את הפרטים</p></div><span></span></header>
+    <form id="itemForm" class="form">
+      <label><span>לינק *</span><input id="formLink" type="url" required /></label>
+      <div class="image-card"><img id="imagePreview" class="hidden" alt="תצוגת תמונה" /><div id="imagePlaceholder" class="image-placeholder">בחרי תמונה</div><div class="image-actions"><label class="secondary file-label">בחירה מהגלריה<input id="imageInput" type="file" accept="image/*" hidden /></label><label class="secondary file-label">צילום תמונה<input id="cameraInput" type="file" accept="image/*" capture="environment" hidden /></label></div></div>
+      <label><span>שם הפריט *</span><input id="nameInput" type="text" maxlength="60" required /></label>
+      <label><span>חנות / אתר *</span><input id="storeInput" type="text" list="storesList" required /><datalist id="storesList"></datalist></label>
+      <div class="price-grid"><label><span>מטבע</span><select id="currencyInput"><option value="₪">₪</option><option value="$">$</option><option value="€">€</option><option value="£">£</option><option value="¥">¥</option></select></label><label><span>מחיר *</span><input id="priceInput" type="number" min="0" step="1" /></label></div>
+      <label class="checkline"><input id="unknownPriceInput" type="checkbox" /><span>מחיר לא ידוע</span></label>
+      <fieldset><legend>קטגוריות *</legend><div id="categoryChips" class="category-chips"></div><button type="button" id="addCategoryBtn" class="text-btn">+ קטגוריה חדשה</button></fieldset>
+      <label><span>קוד קופון</span><input id="couponInput" type="text" /></label>
+      <label><span>תאריך תפוגה</span><input id="expiryInput" type="date" /></label>
+      <label><span>הערה</span><textarea id="noteInput" rows="2" maxlength="160"></textarea></label>
+      <div class="sticky-save"><button id="saveBtn" type="submit" class="primary full">Save & Think</button></div>
+    </form>
+  </section>
+
+  <section id="detailScreen" class="screen hidden"><header class="screen-header"><button class="icon-btn back-btn" data-close-screen="detail">←</button><div class="brand small">Link<span>&</span>Think</div><button class="icon-btn" id="detailMenuBtn">⋮</button></header><div id="detailBody" class="detail-body"></div></section>
+  <section id="trashScreen" class="screen hidden"><header class="screen-header"><button class="icon-btn back-btn" data-close-screen="trash">←</button><h1>אשפה</h1><button id="emptyTrashBtn" class="text-btn danger">רוקני אשפה</button></header><div id="trashList" class="trash-list"></div></section>
+  <section id="backupScreen" class="screen hidden"><header class="screen-header"><button class="icon-btn back-btn" data-close-screen="backup">←</button><h1>גיבוי ושחזור</h1><span></span></header><div class="simple-actions"><button id="backupBtn" class="primary full">יצירת גיבוי</button><label class="secondary full file-label">שחזור מגיבוי<input id="restoreInput" type="file" accept=".json,application/json" hidden /></label></div></section>
+
+  <div id="sheetBackdrop" class="backdrop hidden"></div>
+  <section id="menuSheet" class="sheet hidden"><div class="sheet-handle"></div><button data-open-screen="trash">אשפה</button><button data-open-screen="backup">גיבוי ושחזור</button></section>
+  <section id="quickAddSheet" class="sheet hidden"><div class="sheet-handle"></div><h3>הוספת לינק</h3><div class="link-entry"><input id="quickLinkInput" type="url" placeholder="הדביקי לינק" /><button id="quickThinkBtn" class="primary" disabled>Think</button></div></section>
+  <section id="filterSheet" class="sheet large hidden"><div class="sheet-handle"></div><h3>סינון ומיון</h3><div class="filter-group"><h4>מיון</h4><label><input type="radio" name="sort" value="newest" checked /> החדש ביותר</label><label><input type="radio" name="sort" value="oldest" /> הישן ביותר</label><label><input type="radio" name="sort" value="priceAsc" /> מחיר מהנמוך לגבוה</label><label><input type="radio" name="sort" value="priceDesc" /> מחיר מהגבוה לנמוך</label><label><input type="radio" name="sort" value="couponSoon" /> קופונים שפגים בקרוב</label></div><div class="filter-group"><h4>קטגוריות</h4><div id="filterCategories" class="category-chips"></div></div><div class="filter-group"><h4>חנות / אתר</h4><input id="filterStoreSearch" type="search" placeholder="חיפוש חנות" /><div id="filterStores" class="category-chips"></div></div><div class="filter-group"><h4>חודשים</h4><div id="filterMonths" class="category-chips"></div></div><div class="filter-group"><h4>טווח מחיר</h4><div class="price-grid"><select id="filterCurrency"><option value="₪">₪</option><option value="$">$</option><option value="€">€</option><option value="£">£</option><option value="¥">¥</option></select><input id="filterMin" type="number" min="0" placeholder="ממחיר" /><input id="filterMax" type="number" min="0" placeholder="עד מחיר" /></div></div><div class="filter-group"><h4>קופון</h4><label><input id="couponValidFilter" type="checkbox" /> יש קופון בתוקף</label><label><input id="couponExpiredFilter" type="checkbox" /> קופון שפג</label><label><input id="couponNoneFilter" type="checkbox" /> בלי קופון</label></div><div class="sheet-actions"><button id="resetFiltersBtn" class="secondary">איפוס</button><button id="applyFiltersBtn" class="primary">הצגת תוצאות</button></div></section>
+  <section id="boughtSheet" class="sheet hidden"><div class="sheet-handle"></div><h3>קניתי</h3><div class="price-grid"><label><span>מטבע</span><select id="paidCurrency"></select></label><label><span>מחיר ששולם *</span><input id="paidPrice" type="number" min="0" step="1" /></label></div><button id="confirmBoughtBtn" class="primary full">אישור</button></section>
+  <script src="app.js"></script>
+</body></html>
