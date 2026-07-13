@@ -12,3 +12,14 @@
 .action-btn.danger-action{color:#b43b3b;border-color:#eed1d1;background:#fffafa}
 .action-btn.cancel-action{text-align:center;color:var(--muted);background:#f8f5f1}
 @media(max-width:430px){#expiryInput,input[type="date"]{font-size:16px;padding-inline:14px}}
+
+/* v3: compact pinned strip */
+#pinnedSection{padding-top:2px;padding-bottom:4px}
+#pinnedSection h2{margin:8px 0 7px;font-size:18px}
+.pinned-list{gap:9px;padding:0 0 4px;scroll-snap-type:x proximity}
+.pinned-card{position:relative;flex:0 0 112px;min-width:112px;max-width:112px;padding:6px;border-radius:13px;scroll-snap-align:start;overflow:hidden}
+.pinned-card img{display:block;width:100%;height:78px;aspect-ratio:auto;object-fit:cover;border-radius:9px}
+.pinned-card h4{margin:6px 1px 2px;padding-left:15px;font-size:12px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pinned-card p{margin:0 1px 2px;font-size:12px;line-height:1.2;font-weight:800}
+.pinned-menu{position:absolute;z-index:2;top:7px;left:7px;width:25px;height:25px;border:0;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 7px rgba(0,0,0,.10);font-size:17px;line-height:20px;padding:0;color:#222}
+@media(max-width:430px){.pinned-card{flex-basis:104px;min-width:104px;max-width:104px}.pinned-card img{height:70px}}
