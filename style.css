@@ -94,3 +94,8 @@
   .compact-card>strong{font-size:13px}
   .compact-info h3{font-size:13px}
 }
+
+/* v6: in-app duplicate handling */
+.sheet-note{margin:0 0 14px;color:var(--muted);line-height:1.5;text-align:center}
+#duplicateSheet .action-buttons{display:grid;gap:9px}
+#duplicateSheet .action-btn{width:100%}

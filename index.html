@@ -58,6 +58,18 @@
   <section id="menuSheet" class="sheet hidden"><div class="sheet-handle"></div><button data-open-screen="trash">אשפה</button><button data-open-screen="backup">גיבוי ושחזור</button></section>
   <section id="quickAddSheet" class="sheet hidden"><div class="sheet-handle"></div><h3>הוספת לינק</h3><div class="link-entry"><input id="quickLinkInput" type="url" placeholder="הדביקי לינק" /><button id="quickThinkBtn" class="primary" disabled>Think</button></div></section>
   <section id="filterSheet" class="sheet large hidden"><div class="sheet-handle"></div><h3>סינון ומיון</h3><div class="filter-group"><h4>מיון</h4><label><input type="radio" name="sort" value="newest" checked /> החדש ביותר</label><label><input type="radio" name="sort" value="oldest" /> הישן ביותר</label><label><input type="radio" name="sort" value="priceAsc" /> מחיר מהנמוך לגבוה</label><label><input type="radio" name="sort" value="priceDesc" /> מחיר מהגבוה לנמוך</label><label><input type="radio" name="sort" value="couponSoon" /> קופונים שפגים בקרוב</label></div><div class="filter-group"><h4>קטגוריות</h4><div id="filterCategories" class="category-chips"></div></div><div class="filter-group"><h4>חנות / אתר</h4><input id="filterStoreSearch" type="search" placeholder="חיפוש חנות" /><div id="filterStores" class="category-chips"></div></div><div class="filter-group"><h4>חודשים</h4><div id="filterMonths" class="category-chips"></div></div><div class="filter-group"><h4>טווח מחיר</h4><div class="price-grid"><select id="filterCurrency"><option value="₪">₪</option><option value="$">$</option><option value="€">€</option><option value="£">£</option><option value="¥">¥</option></select><input id="filterMin" type="number" inputmode="numeric" pattern="[0-9]*" min="0" placeholder="ממחיר" /><input id="filterMax" type="number" inputmode="numeric" pattern="[0-9]*" min="0" placeholder="עד מחיר" /></div></div><div class="filter-group"><h4>קופון</h4><label><input id="couponValidFilter" type="checkbox" /> יש קופון בתוקף</label><label><input id="couponExpiredFilter" type="checkbox" /> קופון שפג</label><label><input id="couponNoneFilter" type="checkbox" /> בלי קופון</label></div><div class="sheet-actions"><button id="resetFiltersBtn" class="secondary">איפוס</button><button id="applyFiltersBtn" class="primary">הצגת תוצאות</button></div></section>
+
+  <section id="duplicateSheet" class="sheet action-sheet hidden">
+    <div class="sheet-handle"></div>
+    <h3>הלינק הזה כבר שמור</h3>
+    <p id="duplicateDetails" class="sheet-note"></p>
+    <div class="action-buttons">
+      <button id="openDuplicateBtn" class="action-btn">פתחי את הפריט הקיים</button>
+      <button id="forceSaveBtn" class="action-btn primary-action">שמרי בכל זאת</button>
+      <button id="cancelDuplicateBtn" class="action-btn cancel-action">ביטול</button>
+    </div>
+  </section>
+
   <section id="boughtSheet" class="sheet hidden"><div class="sheet-handle"></div><h3>קניתי</h3><div class="price-grid"><label><span>מטבע</span><select id="paidCurrency"></select></label><label><span>מחיר ששולם *</span><input id="paidPrice" type="number" inputmode="numeric" pattern="[0-9]*" min="0" step="1" /></label></div><button id="confirmBoughtBtn" class="primary full">אישור</button></section>
 
   <section id="actionSheet" class="sheet action-sheet hidden">
